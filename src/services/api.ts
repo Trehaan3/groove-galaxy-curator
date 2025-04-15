@@ -121,7 +121,11 @@ export const api = {
     try {
       const response = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error("Failed to search");
-      return await response.json();
+      const results = await response.json();
+      return { 
+        songs: results.songs || [], 
+        artists: results.artists || [] 
+      };
     } catch (error) {
       console.error("Error searching:", error);
       toast.error("Search failed");

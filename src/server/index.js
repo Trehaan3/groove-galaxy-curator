@@ -174,7 +174,7 @@ app.get('/api/search', async (req, res) => {
       [`%${q}%`, `%${q}%`]
     );
     
-    res.json({ songs });
+    res.json({ songs, artists: [] });
   } catch (error) {
     console.error('Error searching:', error);
     res.status(500).json({ error: 'Search failed' });
