@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 const API_URL = "http://localhost:3001/api";
@@ -41,6 +40,8 @@ export const api = {
       if (!response.ok) throw new Error("Failed to create playlist");
       
       const playlist = await response.json();
+      if (!playlist.id) throw new Error("Invalid playlist data received");
+      
       toast.success("Playlist created successfully");
       return playlist;
     } catch (error) {
@@ -88,7 +89,14 @@ export const api = {
         body: JSON.stringify({ songId }),
       });
       
-      if (!response.ok) throw new Error("Failed to add song to playlist");
+      if (!response.ok) {
+        const data = await response.json();
+        if (response.status === 409) {
+          toast.error("Song is already in the playlist");
+          return false;
+        }
+        throw new Error(data.error || "Failed to add song to playlist");
+      }
       
       toast.success("Song added to playlist");
       return true;

@@ -28,7 +28,9 @@ const promisePool = pool.promise();
 // Get all playlists
 app.get('/api/playlists', async (req, res) => {
   try {
-    const [rows] = await promisePool.query('SELECT playlist_id as id, name, description FROM playlists');
+    const [rows] = await promisePool.query(
+      'SELECT playlist_id as id, name, description FROM playlists'
+    );
     res.json(rows);
   } catch (error) {
     console.error('Error fetching playlists:', error);
@@ -64,14 +66,18 @@ app.post('/api/playlists', async (req, res) => {
 
 // Delete a playlist
 app.delete('/api/playlists/:id', async (req, res) => {
-  const { id } = req.params;
+  const playlistId = parseInt(req.params.id);
   
+  if (isNaN(playlistId)) {
+    return res.status(400).json({ error: 'Invalid playlist ID' });
+  }
+
   try {
     // First delete from song_playlist junction table
-    await promisePool.query('DELETE FROM song_playlist WHERE playlist_id = ?', [id]);
+    await promisePool.query('DELETE FROM song_playlist WHERE playlist_id = ?', [playlistId]);
     
     // Then delete the playlist
-    const [result] = await promisePool.query('DELETE FROM playlists WHERE playlist_id = ?', [id]);
+    const [result] = await promisePool.query('DELETE FROM playlists WHERE playlist_id = ?', [playlistId]);
     
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Playlist not found' });
@@ -106,18 +112,18 @@ app.get('/api/playlists/:id/songs', async (req, res) => {
 
 // Add song to playlist
 app.post('/api/playlists/:id/songs', async (req, res) => {
-  const { id } = req.params;
-  const { songId } = req.body;
+  const playlistId = parseInt(req.params.id);
+  const songId = parseInt(req.body.songId);
   
-  if (!songId) {
-    return res.status(400).json({ error: 'Song ID is required' });
+  if (isNaN(playlistId) || isNaN(songId)) {
+    return res.status(400).json({ error: 'Invalid playlist or song ID' });
   }
   
   try {
     // Check if the song is already in the playlist
     const [existing] = await promisePool.query(
       'SELECT * FROM song_playlist WHERE playlist_id = ? AND song_id = ?',
-      [id, songId]
+      [playlistId, songId]
     );
     
     if (existing.length > 0) {
@@ -126,7 +132,7 @@ app.post('/api/playlists/:id/songs', async (req, res) => {
     
     await promisePool.query(
       'INSERT INTO song_playlist (playlist_id, song_id, date_added) VALUES (?, ?, CURDATE())',
-      [id, songId]
+      [playlistId, songId]
     );
     
     res.status(201).json({ message: 'Song added to playlist successfully' });
