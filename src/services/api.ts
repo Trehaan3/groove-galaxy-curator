@@ -4,13 +4,13 @@ import { toast } from "sonner";
 const API_URL = "http://localhost:3001/api";
 
 interface Playlist {
-  id: number;
+  id: number;  // maps to playlist_id
   name: string;
   description?: string;
 }
 
 interface Song {
-  id: number;
+  id: number;  // maps to song_id
   title: string;
   artist_name: string;
   album_name?: string;

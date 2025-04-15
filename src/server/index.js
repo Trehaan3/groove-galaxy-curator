@@ -28,7 +28,7 @@ const promisePool = pool.promise();
 // Get all playlists
 app.get('/api/playlists', async (req, res) => {
   try {
-    const [rows] = await promisePool.query('SELECT * FROM playlists');
+    const [rows] = await promisePool.query('SELECT playlist_id as id, name, description FROM playlists');
     res.json(rows);
   } catch (error) {
     console.error('Error fetching playlists:', error);
@@ -51,7 +51,7 @@ app.post('/api/playlists', async (req, res) => {
     );
     
     const [newPlaylist] = await promisePool.query(
-      'SELECT * FROM playlists WHERE id = ?',
+      'SELECT playlist_id as id, name, description FROM playlists WHERE playlist_id = ?',
       [result.insertId]
     );
     
@@ -71,7 +71,7 @@ app.delete('/api/playlists/:id', async (req, res) => {
     await promisePool.query('DELETE FROM song_playlist WHERE playlist_id = ?', [id]);
     
     // Then delete the playlist
-    const [result] = await promisePool.query('DELETE FROM playlists WHERE id = ?', [id]);
+    const [result] = await promisePool.query('DELETE FROM playlists WHERE playlist_id = ?', [id]);
     
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Playlist not found' });
@@ -90,11 +90,9 @@ app.get('/api/playlists/:id/songs', async (req, res) => {
   
   try {
     const [rows] = await promisePool.query(
-      `SELECT s.id, s.title, a.name AS artist_name, al.name AS album_name
+      `SELECT s.song_id as id, s.title, s.artist_name, s.album_name
        FROM songs s
-       JOIN song_playlist sp ON s.id = sp.song_id
-       JOIN artists a ON s.artist_id = a.id
-       LEFT JOIN albums al ON s.album_id = al.id
+       JOIN song_playlist sp ON s.song_id = sp.song_id
        WHERE sp.playlist_id = ?`,
       [id]
     );
@@ -127,7 +125,7 @@ app.post('/api/playlists/:id/songs', async (req, res) => {
     }
     
     await promisePool.query(
-      'INSERT INTO song_playlist (playlist_id, song_id) VALUES (?, ?)',
+      'INSERT INTO song_playlist (playlist_id, song_id, date_added) VALUES (?, ?, CURDATE())',
       [id, songId]
     );
     
@@ -168,23 +166,15 @@ app.get('/api/search', async (req, res) => {
   }
   
   try {
-    // Search for songs
+    // Search for songs with their details
     const [songs] = await promisePool.query(
-      `SELECT s.id, s.title, a.name AS artist_name, al.name AS album_name
-       FROM songs s
-       JOIN artists a ON s.artist_id = a.id
-       LEFT JOIN albums al ON s.album_id = al.id
-       WHERE s.title LIKE ? OR a.name LIKE ?`,
+      `SELECT song_id as id, title, artist_name, album_name
+       FROM songs
+       WHERE title LIKE ? OR artist_name LIKE ?`,
       [`%${q}%`, `%${q}%`]
     );
     
-    // Search for artists
-    const [artists] = await promisePool.query(
-      'SELECT id, name FROM artists WHERE name LIKE ?',
-      [`%${q}%`]
-    );
-    
-    res.json({ songs, artists });
+    res.json({ songs });
   } catch (error) {
     console.error('Error searching:', error);
     res.status(500).json({ error: 'Search failed' });
