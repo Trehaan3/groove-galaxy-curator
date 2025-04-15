@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 
 const API_URL = "http://localhost:3001/api";
@@ -21,7 +22,10 @@ export const api = {
     try {
       const response = await fetch(`${API_URL}/playlists`);
       if (!response.ok) throw new Error("Failed to fetch playlists");
-      return await response.json();
+      
+      const playlists = await response.json();
+      console.log("Fetched playlists:", playlists); // Debug log
+      return playlists;
     } catch (error) {
       console.error("Error fetching playlists:", error);
       toast.error("Failed to load playlists");
@@ -40,7 +44,12 @@ export const api = {
       if (!response.ok) throw new Error("Failed to create playlist");
       
       const playlist = await response.json();
-      if (!playlist.id) throw new Error("Invalid playlist data received");
+      console.log("Created playlist:", playlist); // Debug log
+      
+      if (!playlist.id) {
+        console.error("Invalid playlist data received:", playlist);
+        throw new Error("Invalid playlist data received - missing ID");
+      }
       
       toast.success("Playlist created successfully");
       return playlist;
@@ -53,6 +62,8 @@ export const api = {
 
   async deletePlaylist(id: number): Promise<boolean> {
     try {
+      console.log("Deleting playlist with ID:", id); // Debug log
+      
       const response = await fetch(`${API_URL}/playlists/${id}`, {
         method: "DELETE",
       });
@@ -71,9 +82,14 @@ export const api = {
   // Song actions
   async getPlaylistSongs(playlistId: number): Promise<Song[]> {
     try {
+      console.log("Fetching songs for playlist ID:", playlistId); // Debug log
+      
       const response = await fetch(`${API_URL}/playlists/${playlistId}/songs`);
       if (!response.ok) throw new Error("Failed to fetch playlist songs");
-      return await response.json();
+      
+      const songs = await response.json();
+      console.log("Fetched songs:", songs); // Debug log
+      return songs;
     } catch (error) {
       console.error("Error fetching playlist songs:", error);
       toast.error("Failed to load songs");
@@ -83,6 +99,8 @@ export const api = {
 
   async addSongToPlaylist(playlistId: number, songId: number): Promise<boolean> {
     try {
+      console.log(`Adding song ${songId} to playlist ${playlistId}`); // Debug log
+      
       const response = await fetch(`${API_URL}/playlists/${playlistId}/songs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -109,6 +127,8 @@ export const api = {
 
   async removeSongFromPlaylist(playlistId: number, songId: number): Promise<boolean> {
     try {
+      console.log(`Removing song ${songId} from playlist ${playlistId}`); // Debug log
+      
       const response = await fetch(`${API_URL}/playlists/${playlistId}/songs/${songId}`, {
         method: "DELETE",
       });

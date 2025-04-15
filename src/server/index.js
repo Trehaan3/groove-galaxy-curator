@@ -47,20 +47,29 @@ app.post('/api/playlists', async (req, res) => {
   }
   
   try {
+    // Make sure the playlist ID is auto-incremented properly
     const [result] = await promisePool.query(
       'INSERT INTO playlists (name, description) VALUES (?, ?)',
       [name, description || null]
     );
+    
+    if (!result.insertId) {
+      throw new Error('Failed to get insert ID for new playlist');
+    }
     
     const [newPlaylist] = await promisePool.query(
       'SELECT playlist_id as id, name, description FROM playlists WHERE playlist_id = ?',
       [result.insertId]
     );
     
+    if (!newPlaylist.length) {
+      throw new Error('Failed to retrieve the newly created playlist');
+    }
+    
     res.status(201).json(newPlaylist[0]);
   } catch (error) {
     console.error('Error creating playlist:', error);
-    res.status(500).json({ error: 'Failed to create playlist' });
+    res.status(500).json({ error: 'Failed to create playlist: ' + error.message });
   }
 });
 
@@ -92,7 +101,11 @@ app.delete('/api/playlists/:id', async (req, res) => {
 
 // Get songs in a playlist
 app.get('/api/playlists/:id/songs', async (req, res) => {
-  const { id } = req.params;
+  const playlistId = parseInt(req.params.id);
+  
+  if (isNaN(playlistId)) {
+    return res.status(400).json({ error: 'Invalid playlist ID' });
+  }
   
   try {
     const [rows] = await promisePool.query(
@@ -100,7 +113,7 @@ app.get('/api/playlists/:id/songs', async (req, res) => {
        FROM songs s
        JOIN song_playlist sp ON s.song_id = sp.song_id
        WHERE sp.playlist_id = ?`,
-      [id]
+      [playlistId]
     );
     
     res.json(rows);
@@ -144,7 +157,12 @@ app.post('/api/playlists/:id/songs', async (req, res) => {
 
 // Remove song from playlist
 app.delete('/api/playlists/:playlistId/songs/:songId', async (req, res) => {
-  const { playlistId, songId } = req.params;
+  const playlistId = parseInt(req.params.playlistId);
+  const songId = parseInt(req.params.songId);
+  
+  if (isNaN(playlistId) || isNaN(songId)) {
+    return res.status(400).json({ error: 'Invalid playlist or song ID' });
+  }
   
   try {
     const [result] = await promisePool.query(
