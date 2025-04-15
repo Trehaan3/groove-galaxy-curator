@@ -1,73 +1,83 @@
-# Welcome to your Lovable project
 
-## Project info
+# Groove Galaxy - Playlist Manager
 
-**URL**: https://lovable.dev/projects/925aa564-c6e7-4986-9057-bb8ec055f157
+A simple playlist manager app that allows users to create and manage music playlists.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- Create and delete playlists
+- Add and remove songs from playlists
+- Search for songs and artists
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/925aa564-c6e7-4986-9057-bb8ec055f157) and start prompting.
+- Frontend: React, Tailwind CSS, shadcn/ui
+- Backend: Node.js, Express
+- Database: MySQL
 
-Changes made via Lovable will be committed automatically to this repo.
+## Setup Instructions
 
-**Use your preferred IDE**
+### Database Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+The application requires a MySQL database named `qrate` with the following tables:
+- `playlists`
+- `songs`
+- `albums`
+- `song_playlist`
+- `artists`
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The database connection uses the following parameters:
+- Host: localhost
+- User: root
+- Password: Nat!haan01
+- Database: qrate
 
-Follow these steps:
+### Running the Backend Server
 
+1. Navigate to the server directory:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+cd src/server
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+```sh
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Start the server:
+```sh
+npm start
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+The server will run on http://localhost:3001
+
+### Running the Frontend
+
+In a separate terminal:
+
+1. Install dependencies (from the project root):
+```sh
+npm install
+```
+
+2. Start the development server:
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## API Endpoints
 
-**Use GitHub Codespaces**
+### Playlists
+- `GET /api/playlists` - Get all playlists
+- `POST /api/playlists` - Create a new playlist
+- `DELETE /api/playlists/:id` - Delete a playlist
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Songs
+- `GET /api/playlists/:id/songs` - Get songs in a playlist
+- `POST /api/playlists/:id/songs` - Add a song to a playlist
+- `DELETE /api/playlists/:playlistId/songs/:songId` - Remove a song from a playlist
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/925aa564-c6e7-4986-9057-bb8ec055f157) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Search
+- `GET /api/search?q=query` - Search for songs and artists
